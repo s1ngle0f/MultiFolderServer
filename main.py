@@ -58,6 +58,18 @@ def getTree():
         # print(response)
         return jsonify(response if response.get('type') != 'file' else 'This directory dont exist')
 
+@app.route('/isExistFolder', methods=['GET'])
+def isExistFolder():
+    if request.method == 'GET':
+        params = request.values
+        print(params.to_dict(), params.get('login'))
+        main_path = data_path + params.get('login') + '/' + params.get('folder_name')
+        if not os.path.exists(main_path):
+            os.makedirs(main_path)
+            return jsonify(False)
+        else:
+            return jsonify(True)
+
 @app.route('/getLastTimeModification', methods=['GET'])
 def getLastTimeModification():
     if request.method == 'GET':
