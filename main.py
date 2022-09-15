@@ -2,10 +2,13 @@ import jsondiff
 from flask import Flask, request, jsonify, send_file
 import sqlite3
 import os
+from os import listdir
+from os.path import isfile, join
 import directory_tree
 
 app = Flask(__name__)
 data_path = 'C:/Users/zubko/Desktop/DATA/'
+settings_app_path = 'C:/Users/zubko/Desktop/SettingsApp'
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -88,6 +91,12 @@ def getFilesSize():
         response = directory_tree.get_files_folder_and_size(main_path, base_dir=base_dir)
         return jsonify(response)
 
+@app.route('/getDirs', methods=['GET'])
+def getDirs():
+    if request.method == 'GET':
+        params = request.values
+        base_dir = data_path + params.get('login')
+        return jsonify([os.path.basename(x) for x in os.listdir(base_dir)])
 
 @app.route('/deleteNonExistentFoldersOrFiles', methods=['POST'])
 def deleteNonExistentFoldersOrFiles():
@@ -176,6 +185,19 @@ def getFilesArray():
     main_path = data_path + params.get('login') + '/' + params.get('folder_name')
 
     return jsonify(directory_tree.get_files_folder(main_path))
+
+@app.route('/getListSettingsApp', methods=['GET'])
+def getListSettingsApp():
+    return jsonify([f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))])
+
+@app.route('/getSettingsApp', methods=['GET'])
+def getSettingsApp():
+    params = request.values
+    return send_file(settings_app_path + '/' + params.get('app_name'))
+
+@app.route('/download', methods=['GET'])
+def download():
+    return send_file(settings_app_path + '/MAIN_APP/main_app.exe')
 
 # def deleteJdiff(tree, jdiff, path):
 #     print(jdiff)
