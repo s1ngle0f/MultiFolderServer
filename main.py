@@ -1,3 +1,5 @@
+import time
+
 import jsondiff
 from flask import Flask, request, jsonify, send_file
 import sqlite3
@@ -6,9 +8,15 @@ from os import listdir
 from os.path import isfile, join
 import directory_tree
 
-app = Flask(__name__)
 data_path = __file__[:str(__file__).rfind('\\')+1].replace('\\', '/') + 'DATA/' #'C:/Users/zubko/Desktop/DATA/'
 settings_app_path = __file__[:str(__file__).rfind('\\')+1].replace('\\', '/') + 'SettingsApp/' #'C:/Users/zubko/Desktop/SettingsApp'
+
+if not os.path.exists(data_path[:-1]):
+    os.makedirs(data_path[:-1])
+if not os.path.exists(settings_app_path[:-1]):
+    os.makedirs(settings_app_path[:-1])
+
+app = Flask(__name__)
 
 @app.route('/upload', methods=['POST'])
 def upload():
