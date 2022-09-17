@@ -7,8 +7,8 @@ from os.path import isfile, join
 import directory_tree
 
 app = Flask(__name__)
-data_path = 'C:/Users/zubko/Desktop/DATA/'
-settings_app_path = 'C:/Users/zubko/Desktop/SettingsApp'
+data_path = __file__[:str(__file__).rfind('\\')+1].replace('\\', '/') + 'DATA/' #'C:/Users/zubko/Desktop/DATA/'
+settings_app_path = __file__[:str(__file__).rfind('\\')+1].replace('\\', '/') + 'SettingsApp/' #'C:/Users/zubko/Desktop/SettingsApp'
 
 @app.route('/upload', methods=['POST'])
 def upload():
