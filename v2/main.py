@@ -1,13 +1,16 @@
 from fastapi import FastAPI, Request, Depends, UploadFile
 import uvicorn
+from models import *
 
 
 async def basic(request: Request):
     result = dict(request.query_params)
-    if result['login'] != None and result['password'] != None:
-        result['status'] = 'Ok'
-    else:
-        result['status'] = 'Fail'
+    with db:
+        user = User.select().where(User.login == result['login'] and User.password == result['password']).first()
+        if user != None:
+            result['status'] = 'Ok'
+        else:
+            result['status'] = 'Fail'
     return result
 
 app = FastAPI()
@@ -49,5 +52,11 @@ async def get_dir_files_info(request: Request, params: dict = Depends(basic)):
 async def get_dir_newer_files_info(request: Request, params: dict = Depends(basic)):
     pass
 
+@app.get('/registrate')
+async def registrate(request: Request, params: dict = Depends(basic)):
+    pass
+
 if __name__ == '__main__':
+    with db:
+        db.create_tables([User, Directory, File])
     uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')
