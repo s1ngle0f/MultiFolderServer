@@ -25,45 +25,42 @@ app = FastAPI()
 
 @app.get('/ping')
 async def ping_pong(request: Request, params: dict = Depends(basic)):
-    # print(f'Params: {params}')
     if params['status']:
         return 'Pong'
-    return 'Fail'
 
 @app.get('/delete_file')
 async def delete_file(request: Request, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        File.delete().where((File.directory_id == directory.id) & (File.path == params['local_path'])).execute()
-        return 'Deleted'
-    return 'Directory with this name doesn\'t exists'
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            File.delete().where((File.directory_id == directory.id) & (File.path == params['local_path'])).execute()
+            return 'Deleted'
 
 @app.post('/upload_file')
 async def upload_file(request: Request, file: UploadFile, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        existing_file = File.select().where((File.path == params['local_path']) & (File.directory_id == directory.id)).first()
-        file_data = await file.read()
-        if existing_file == None:
-            File.create(directory_id=directory.id, name=os.path.basename(file.filename), path=params['local_path'],
-                        timestamp=float(params['timestamp']), size=len(file_data), data=file_data) #ПОФИКСИТЬ ЗАГРУЗКУ БИТОВ
-        else:
-            File.update(timestamp=float(params['timestamp']), size=len(file_data), data=file_data).where(
-                (File.path == params['local_path']) & (File.directory_id == directory.id)
-            ).execute()
-        return 'Uploaded'
-    return 'Error'
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            existing_file = File.select().where((File.path == params['local_path']) & (File.directory_id == directory.id)).first()
+            file_data = await file.read()
+            if existing_file == None:
+                File.create(directory_id=directory.id, name=os.path.basename(file.filename), path=params['local_path'],
+                            timestamp=float(params['timestamp']), size=len(file_data), data=file_data) #ПОФИКСИТЬ ЗАГРУЗКУ БИТОВ
+            else:
+                File.update(timestamp=float(params['timestamp']), size=len(file_data), data=file_data).where(
+                    (File.path == params['local_path']) & (File.directory_id == directory.id)
+                ).execute()
+            return 'Uploaded'
 
 @app.get('/get_file')
 async def get_file(request: Request, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
-        if file != None:
-            print(bytes(file.data)[:100])
-            return {'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size, 'data': str(bytes(file.data))}
-        return None
-    return 'Directory with this name doesn\'t exists'
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
+            if file != None:
+                print(bytes(file.data)[:100])
+                return {'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size, 'data': str(bytes(file.data))}
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
@@ -72,50 +69,49 @@ async def get_dir_last_time_modification(request: Request, params: dict = Depend
         if directory != None:
             timestamp = File.select().where((File.directory_id == directory.id)).order_by(-File.timestamp).first().timestamp
             return time.mktime(datetime.datetime.strptime(str(timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
-        return 'Directory with this name doesn\'t exists'
-    return {'exception': 'Некорректные данные'}
 
 @app.get('/get_dirs')
 async def get_dirs(request: Request, params: dict = Depends(basic)):
-    directories = Directory.select().where(Directory.user_id == params['user_id'])
-    if directories != None:
-        return [{'name': directory.name} for directory in directories]
-    return None
+    if params['status']:
+        directories = Directory.select().where(Directory.user_id == params['user_id'])
+        if directories != None:
+            return [{'name': directory.name} for directory in directories]
 
 @app.get('/get_dir')
 async def get_dir(request: Request, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        return [{'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size} for file in File.select().where(File.directory_id == directory.id)]
-    return None
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            return [{'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size} for file in File.select().where(File.directory_id == directory.id)]
 
 @app.get('/add_dir')
 async def add_dir(request: Request, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory == None:
-        Directory.create(name=params['dir_name'], user_id=params['user_id'])
-        return 'Directory was created'
-    return 'Directory with this name exists'
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory == None:
+            Directory.create(name=params['dir_name'], user_id=params['user_id'])
+            return 'Directory was created'
 
 @app.get('/delete_dir')
 async def delete_dir(request: Request, params: dict = Depends(basic)):
-    directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        Directory.delete().where(Directory.name == params['dir_name']).execute()
-        return 'Directory was deleted'
-    return 'Directory with this name doesn\'t exists'
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            Directory.delete().where(Directory.name == params['dir_name']).execute()
+            return 'Directory was deleted'
 
 @app.get('/get_differents')
 async def get_differents(request: Request, params: dict = Depends(basic)):
-    client_files_info = json.loads(await request.json())
-    print(client_files_info)
-    dir_name = client_files_info['server_dir_name']
-    data = client_files_info['data']
-    directory = Directory.select().where((Directory.name == dir_name) & (Directory.user_id == params['user_id'])).first()
-    if directory != None:
-        server_data = [{'path': file.path, 'size': file.size, 'time_modification': time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())}
-                       for file in File.select().where(File.directory_id == directory.id)]
-        return get_diff(data, server_data) | {'last_time_modification': round(max(server_data, key=lambda x: x['time_modification'])['time_modification'])}
+    if params['status']:
+        client_files_info = json.loads(await request.json())
+        # print(client_files_info)
+        dir_name = client_files_info['server_dir_name']
+        data = client_files_info['data']
+        directory = Directory.select().where((Directory.name == dir_name) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            server_data = [{'path': file.path, 'size': file.size, 'time_modification': time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())}
+                           for file in File.select().where(File.directory_id == directory.id)]
+            return get_diff(data, server_data) | {'last_time_modification': round(max(server_data, key=lambda x: x['time_modification'])['time_modification'])}
 
 @app.get('/registrate')
 async def registrate(request: Request):
