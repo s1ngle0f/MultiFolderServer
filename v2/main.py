@@ -117,11 +117,13 @@ async def get_differents(request: Request, params: dict = Depends(basic)):
     if directory != None:
         server_data = [{'path': file.path, 'size': file.size, 'time_modification': time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())}
                        for file in File.select().where(File.directory_id == directory.id)]
-        return get_diff(data, server_data)
+        return get_diff(data, server_data) | {'last_time_modification': round(max(server_data, key=lambda x: x['time_modification'])['time_modification'])}
 
 @app.get('/registrate')
-async def registrate(request: Request, params: dict = Depends(basic)):
-    pass
+async def registrate(request: Request):
+    params = dict(request.query_params)
+    if User.select().where(User.login == params['login']).first() == None:
+        User.create(login=params['login'], password=params['password'])
 
 if __name__ == '__main__':
     with db:
