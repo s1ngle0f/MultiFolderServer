@@ -1,3 +1,4 @@
+import json
 import os.path
 import time
 import datetime
@@ -25,4 +26,4 @@ with db:
         # with open('C:\\Users\\zubko\\Desktop\\DATA\\zubkov\\creating_files\\' + os.path.basename(file.name), 'a+') as f:
         #     f.write(file.data)
 
-    print(User.select().first().login)
+    print(list(File.select()))
