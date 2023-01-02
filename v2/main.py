@@ -21,6 +21,16 @@ async def basic(request: Request):
             result['status'] = False
     return result
 
+def save_file_last_time_modification(directory_id, timestamp):
+    # print(f'{directory_id} {timestamp}')
+    dir_ltm = LastTimeModification.select().where(LastTimeModification.directory_id == directory_id).first()
+    if dir_ltm == None:
+        LastTimeModification.create(directory_id=directory_id, timestamp=timestamp)
+    else:
+        dir_ltm_timestamp = time.mktime(datetime.datetime.strptime(str(dir_ltm.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
+        if timestamp > dir_ltm_timestamp:
+            LastTimeModification.update(timestamp=timestamp).where(LastTimeModification.directory_id == directory_id)
+
 app = FastAPI()
 
 @app.get('/ping')
@@ -34,6 +44,7 @@ async def delete_file(request: Request, params: dict = Depends(basic)):
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
             File.delete().where((File.directory_id == directory.id) & (File.path == params['local_path'])).execute()
+            save_file_last_time_modification(directory.id, float(params['timestamp']))
             return 'Deleted'
 
 @app.post('/upload_file')
@@ -50,6 +61,7 @@ async def upload_file(request: Request, file: UploadFile, params: dict = Depends
                 File.update(timestamp=float(params['timestamp']), size=len(file_data), data=file_data).where(
                     (File.path == params['local_path']) & (File.directory_id == directory.id)
                 ).execute()
+            save_file_last_time_modification(directory.id, float(params['timestamp']))
             return 'Uploaded'
 
 @app.get('/get_file')
@@ -67,8 +79,9 @@ async def get_dir_last_time_modification(request: Request, params: dict = Depend
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
-            timestamp = File.select().where((File.directory_id == directory.id)).order_by(-File.timestamp).first().timestamp
-            return time.mktime(datetime.datetime.strptime(str(timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
+            dir_ltm = LastTimeModification.select().where((LastTimeModification.directory_id == directory.id)).first()
+            ltm = dir_ltm.timestamp if dir_ltm != None else 0
+            return time.mktime(datetime.datetime.strptime(str(ltm), "%Y-%m-%d %H:%M:%S").timetuple()) if isinstance(ltm, datetime.datetime) else 0
 
 @app.get('/get_dirs')
 async def get_dirs(request: Request, params: dict = Depends(basic)):
@@ -111,7 +124,10 @@ async def get_differents(request: Request, params: dict = Depends(basic)):
         if directory != None:
             server_data = [{'path': file.path, 'size': file.size, 'time_modification': time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())}
                            for file in File.select().where(File.directory_id == directory.id)]
-            return get_diff(data, server_data) | {'last_time_modification': round(max(server_data, key=lambda x: x['time_modification'])['time_modification'])}
+            dir_ltm = LastTimeModification.select().where((LastTimeModification.directory_id == directory.id)).first()
+            ltm = dir_ltm.timestamp if dir_ltm != None else 0
+            ltm = time.mktime(datetime.datetime.strptime(str(ltm), "%Y-%m-%d %H:%M:%S").timetuple()) if isinstance(ltm, datetime.datetime) else 0
+            return get_diff(data, server_data) | {'last_time_modification': ltm}
 
 @app.get('/registrate')
 async def registrate(request: Request):
@@ -121,5 +137,5 @@ async def registrate(request: Request):
 
 if __name__ == '__main__':
     with db:
-        db.create_tables([User, Directory, File])
+        db.create_tables([User, Directory, File, LastTimeModification])
     uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')

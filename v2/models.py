@@ -28,6 +28,14 @@ class Directory(BaseModel):
     class Meta:
         table_name = 'directories'
 
+class LastTimeModification(BaseModel):
+    id = BigAutoField(primary_key=True, unique=True)
+    directory_id = ForeignKeyField(Directory, field='id')
+    timestamp = TimestampField(null=False)
+
+    class Meta:
+        table_name = 'last_time_modification'
+
 class File(BaseModel):
     id = BigAutoField(primary_key=True, unique=True)
     directory_id = ForeignKeyField(Directory, field='id')
