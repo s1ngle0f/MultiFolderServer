@@ -1,11 +1,9 @@
 import json
 import os.path
-import shutil
 import time
 import datetime
 from help_functions import get_diff
 from fastapi import FastAPI, Request, Depends, UploadFile
-from fastapi.encoders import jsonable_encoder
 import uvicorn
 from models import *
 
