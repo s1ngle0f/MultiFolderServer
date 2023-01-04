@@ -8,6 +8,7 @@ import uvicorn
 from models import *
 
 
+settings_app_path = os.getcwd() + '\\settings_app'
 
 async def basic(request: Request):
     result = dict(request.query_params)
@@ -111,6 +112,8 @@ async def delete_dir(request: Request, params: dict = Depends(basic)):
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
             Directory.delete().where(Directory.name == params['dir_name']).execute()
+            File.delete().where(File.directory_id == directory.id).execute()
+            LastTimeModification.delete().where(LastTimeModification.directory_id == directory.id).execute()
             return 'Directory was deleted'
 
 @app.get('/get_differents')
