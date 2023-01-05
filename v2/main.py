@@ -73,7 +73,7 @@ async def get_file(request: Request, params: dict = Depends(basic)):
             file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
             if file != None:
                 print(bytes(file.data)[:100])
-                return {'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size, 'data': str(bytes(file.data))}
+                return {'name': file.name, 'path': file.path, 'time_modification': file.timestamp, 'size': file.size, 'data': str(bytes(file.data))}
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
@@ -96,7 +96,7 @@ async def get_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
-            return [{'name': file.name, 'path': file.path, 'timestamp': file.timestamp, 'size': file.size} for file in File.select().where(File.directory_id == directory.id)]
+            return [{'name': file.name, 'path': file.path, 'time_modification': file.timestamp, 'size': file.size} for file in File.select().where(File.directory_id == directory.id)]
 
 @app.get('/add_dir')
 async def add_dir(request: Request, params: dict = Depends(basic)):
