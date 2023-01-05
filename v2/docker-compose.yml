@@ -3,13 +3,28 @@ version: '3.9'
 services:
   server:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     restart: always
     ports:
       - 5000:1111
+    depends_on:
+      - db
+
   db:
     image: postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: 6010
+      POSTGRES_DB: "multifolder"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "6010"
+    ports:
+      - 5431:5432
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - db

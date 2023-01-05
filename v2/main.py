@@ -5,7 +5,7 @@ import datetime
 from help_functions import get_diff
 from fastapi import FastAPI, Request, Depends, UploadFile
 import uvicorn
-from models import *
+from models import User, Directory, LastTimeModification, File, db
 
 
 settings_app_path = os.getcwd() + '\\settings_app'
@@ -72,8 +72,9 @@ async def get_file(request: Request, params: dict = Depends(basic)):
         if directory != None:
             file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
             if file != None:
-                print(bytes(file.data)[:100])
-                return {'name': file.name, 'path': file.path, 'time_modification': file.timestamp, 'size': file.size, 'data': str(bytes(file.data))}
+                # print(bytes(file.data)[:100])
+                time_modification = time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
+                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(file.data))}
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
