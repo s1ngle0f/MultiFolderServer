@@ -39,6 +39,12 @@ async def ping_pong(request: Request, params: dict = Depends(basic)):
     if params['status']:
         return 'Pong'
 
+@app.get('/is_exist_user')
+async def is_exist_user(params: dict = Depends(basic)):
+    if params['status']:
+        return True
+    return False
+
 @app.get('/delete_file')
 async def delete_file(request: Request, params: dict = Depends(basic)):
     if params['status']:
