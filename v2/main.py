@@ -14,7 +14,7 @@ async def basic(request: Request):
     result = dict(request.query_params)
     print(result)
     with db:
-        user = User.select().where(User.login == result['login'] and User.password == result['password']).first()
+        user = User.select().where((User.login == result['login']) & (User.password == result['password'])).first()
         if user != None:
             result['status'] = True
             result['user_id'] = user.id
