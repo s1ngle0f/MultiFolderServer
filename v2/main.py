@@ -118,9 +118,9 @@ async def delete_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
-            Directory.delete().where(Directory.name == params['dir_name']).execute()
             File.delete().where(File.directory_id == directory.id).execute()
             LastTimeModification.delete().where(LastTimeModification.directory_id == directory.id).execute()
+            Directory.delete().where(Directory.name == params['dir_name']).execute()
             return 'Directory was deleted'
 
 @app.get('/get_differents')
