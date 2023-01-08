@@ -80,7 +80,7 @@ async def get_file(request: Request, params: dict = Depends(basic)):
             if file != None:
                 # print(bytes(file.data)[:100])
                 time_modification = time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
-                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(file.data))}
+                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(file.data))[2:-1]}
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
