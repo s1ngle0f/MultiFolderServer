@@ -4,11 +4,14 @@ import time
 import datetime
 from help_functions import get_diff
 from fastapi import FastAPI, Request, Depends, UploadFile
+from fastapi.responses import FileResponse
 import uvicorn
+from os import listdir
+from os.path import isfile, join
 from models import User, Directory, LastTimeModification, File, db
 
 
-settings_app_path = os.getcwd() + '\\settings_app'
+settings_app_path = os.getcwd() + '/settings_app'
 
 async def basic(request: Request):
     result = dict(request.query_params)
@@ -33,6 +36,19 @@ def save_file_last_time_modification(directory_id, timestamp):
             LastTimeModification.update(timestamp=timestamp).where(LastTimeModification.directory_id == directory_id)
 
 app = FastAPI()
+
+@app.get('/get_working_file')
+async def get_working_file(request: Request):
+    params = dict(request.query_params)
+    if os.path.exists(settings_app_path + f'/{params["file_name"]}'):
+        return FileResponse(path=settings_app_path + f'/{params["file_name"]}', media_type='application/octet-stream', filename=params["file_name"])
+
+@app.get('/get_list_working_files')
+async def get_list_working_files(request: Request):
+    print(settings_app_path)
+    files = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
+    print(files)
+    return {'files': files}
 
 @app.get('/ping')
 async def ping_pong(request: Request, params: dict = Depends(basic)):
