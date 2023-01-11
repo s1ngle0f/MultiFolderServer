@@ -37,6 +37,11 @@ def save_file_last_time_modification(directory_id, timestamp):
 
 app = FastAPI()
 
+@app.get('/installer/dowlnoad')
+async def installer_dowlnoad(request: Request):
+    if os.path.exists(settings_app_path + '/installer/installer_updater.exe'):
+        return FileResponse(path=settings_app_path + '/installer/installer_updater.exe', media_type='application/octet-stream', filename='installer_updater.exe')
+
 @app.get('/get_working_file')
 async def get_working_file(request: Request):
     params = dict(request.query_params)
