@@ -118,6 +118,7 @@ async def get_dirs(request: Request, params: dict = Depends(basic)):
         directories = Directory.select().where(Directory.user_id == params['user_id'])
         if directories != None:
             return [{'name': directory.name} for directory in directories]
+        return []
 
 @app.get('/get_dir')
 async def get_dir(request: Request, params: dict = Depends(basic)):
