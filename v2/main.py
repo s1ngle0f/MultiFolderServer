@@ -33,7 +33,7 @@ def save_file_last_time_modification(directory_id, timestamp):
     else:
         dir_ltm_timestamp = time.mktime(datetime.datetime.strptime(str(dir_ltm.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
         if timestamp > dir_ltm_timestamp:
-            LastTimeModification.update(timestamp=timestamp).where(LastTimeModification.directory_id == directory_id)
+            LastTimeModification.update(timestamp=timestamp).where(LastTimeModification.directory_id == directory_id).execute()
 
 app = FastAPI()
 
