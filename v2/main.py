@@ -72,6 +72,8 @@ async def delete_file(request: Request, params: dict = Depends(basic)):
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory != None:
             File.delete().where((File.directory_id == directory.id) & (File.path == params['local_path'])).execute()
+            print(params['timestamp'])
+            print('float ' + str(float(params['timestamp'])))
             save_file_last_time_modification(directory.id, params['timestamp'])
             return 'Deleted'
 
