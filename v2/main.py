@@ -89,7 +89,7 @@ async def upload_file(request: Request, file: UploadFile, params: dict = Depends
                 File.update(timestamp=float(params['timestamp']), size=len(file_data), data=file_data).where(
                     (File.path == params['local_path']) & (File.directory_id == directory.id)
                 ).execute()
-            save_file_last_time_modification(directory.id, float(params['timestamp']))
+            save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
             return 'Uploaded'
 
 @app.get('/get_file')
