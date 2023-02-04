@@ -1,3 +1,7 @@
+import random
+import string
+
+
 def get_diff(last_files_info, current_files_info):
     add = []
     change = []
@@ -20,3 +24,21 @@ def get_diff(last_files_info, current_files_info):
         'change': change,
         'remove': remove
     }
+
+def get_id(length: int=8):
+    res = ''
+    chars = '0123456789' + string.ascii_letters
+    for _ in range(length):
+        res += random.choice(chars)
+    return res
+# print(get_id())
+
+def add_file_bytes(bytes_parts: dict):
+    res = None
+    bytes_parts = dict(sorted(bytes_parts.items()))
+    for part_num, bytes_part in bytes_parts.items():
+        if res == None:
+            res = bytes_part
+        else:
+            res += bytes_part
+    return res

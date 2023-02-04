@@ -2,7 +2,7 @@ import json
 import os.path
 import time
 import datetime
-from help_functions import get_diff
+from help_functions import get_diff, get_id, add_file_bytes
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse
 import uvicorn
@@ -12,6 +12,7 @@ from models import User, Directory, LastTimeModification, File, db
 
 
 settings_app_path = os.getcwd() + '/settings_app'
+files_buffer = {}
 
 async def basic(request: Request):
     result = dict(request.query_params)
@@ -79,10 +80,12 @@ async def delete_file(request: Request, params: dict = Depends(basic)):
 async def upload_file(request: Request, file: UploadFile, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-        if directory != None:
+        if directory is not None:
             existing_file = File.select().where((File.path == params['local_path']) & (File.directory_id == directory.id)).first()
-            file_data = await file.read()
-            if existing_file == None:
+            file_data = b''
+            while chunk := await file.read(1024*1024*4):
+                file_data += chunk
+            if existing_file is None:
                 File.create(directory_id=directory.id, name=os.path.basename(file.filename), path=params['local_path'],
                             timestamp=float(params['timestamp']), size=len(file_data), data=file_data) #ПОФИКСИТЬ ЗАГРУЗКУ БИТОВ
             else:
@@ -91,6 +94,47 @@ async def upload_file(request: Request, file: UploadFile, params: dict = Depends
                 ).execute()
             save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
             return 'Uploaded'
+
+@app.post('/test_stream_upload_file')
+async def test_stream_upload_file(request: Request, file: UploadFile, params: dict = Depends(basic)):
+    global files_buffer
+    # file_data = await file.read()
+    # print(file_data)
+    # print(file.filename)
+    if params['status']:
+        content = b''
+        while file_data := await file.read(1024*1024*4):
+            print(file_data[:25], len(file_data))
+            content += file_data
+        print(len(content))
+        return str(content)[2:-1]
+        # body = b''
+        # async for chunk in request.stream():
+        #     body += chunk
+        #     print(f'Chunk: {len(chunk)} {chunk[:25]}')
+        # print(body[:50])
+
+        # # print(params['id'])
+        # files_buffer[params['id']]['data'][params['part']] = await file.read()
+        # files_buffer[params['id']]['data'][params['part']] = params['file']
+
+        # files_buffer[params['id']]['data'][params['part']] = bytes(json.loads(await request.json())['file'], 'utf-8').decode('unicode_escape').encode("raw_unicode_escape")
+        # if len(files_buffer[params['id']]['data']) == int(files_buffer[params['id']]['parts']):
+        #     data = add_file_bytes(files_buffer[params['id']]['data'])
+        #     print(data)
+        #     del files_buffer[params['id']]
+        #     print('Loaded!')
+        #     return str(data)
+
+@app.get('/get_unique_id')
+async def get_unique_id(request: Request, params: dict = Depends(basic)):
+    global files_buffer
+    if params['status']:
+        id = get_id()
+        while files_buffer.get(id) != None:
+            id = get_id()
+        files_buffer[id] = {'data': {}, 'parts': params['parts']}
+        return id
 
 @app.get('/get_file')
 async def get_file(request: Request, params: dict = Depends(basic)):
@@ -107,16 +151,16 @@ async def get_file(request: Request, params: dict = Depends(basic)):
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-        if directory != None:
+        if directory is not None:
             dir_ltm = LastTimeModification.select().where((LastTimeModification.directory_id == directory.id)).first()
-            ltm = dir_ltm.timestamp if dir_ltm != None else 0
+            ltm = dir_ltm.timestamp if dir_ltm is not None else 0
             return time.mktime(datetime.datetime.strptime(str(ltm), "%Y-%m-%d %H:%M:%S").timetuple()) if isinstance(ltm, datetime.datetime) else 0
 
 @app.get('/get_dirs')
 async def get_dirs(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directories = Directory.select().where(Directory.user_id == params['user_id'])
-        if directories != None:
+        if directories is not None:
             return [{'name': directory.name} for directory in directories]
         return []
 
@@ -124,14 +168,14 @@ async def get_dirs(request: Request, params: dict = Depends(basic)):
 async def get_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-        if directory != None:
+        if directory is not None:
             return [{'name': file.name, 'path': file.path, 'time_modification': file.timestamp, 'size': file.size} for file in File.select().where(File.directory_id == directory.id)]
 
 @app.get('/add_dir')
 async def add_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-        if directory == None:
+        if directory is None:
             Directory.create(name=params['dir_name'], user_id=params['user_id'])
             return 'Directory was created'
 
@@ -139,7 +183,7 @@ async def add_dir(request: Request, params: dict = Depends(basic)):
 async def delete_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
-        if directory != None:
+        if directory is not None:
             File.delete().where(File.directory_id == directory.id).execute()
             LastTimeModification.delete().where(LastTimeModification.directory_id == directory.id).execute()
             Directory.delete().where(Directory.name == params['dir_name']).execute()
@@ -153,18 +197,18 @@ async def get_differents(request: Request, params: dict = Depends(basic)):
         dir_name = client_files_info['server_dir_name']
         data = client_files_info['data']
         directory = Directory.select().where((Directory.name == dir_name) & (Directory.user_id == params['user_id'])).first()
-        if directory != None:
+        if directory is not None:
             server_data = [{'path': file.path, 'size': file.size, 'time_modification': time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())}
                            for file in File.select().where(File.directory_id == directory.id)]
             dir_ltm = LastTimeModification.select().where((LastTimeModification.directory_id == directory.id)).first()
-            ltm = dir_ltm.timestamp if dir_ltm != None else 0
+            ltm = dir_ltm.timestamp if dir_ltm is not None else 0
             ltm = time.mktime(datetime.datetime.strptime(str(ltm), "%Y-%m-%d %H:%M:%S").timetuple()) if isinstance(ltm, datetime.datetime) else 0
             return get_diff(data, server_data) | {'last_time_modification': ltm}
 
 @app.get('/registrate')
 async def registrate(request: Request):
     params = dict(request.query_params)
-    if User.select().where(User.login == params['login']).first() == None:
+    if User.select().where(User.login == params['login']).first() is None:
         User.create(login=params['login'], password=params['password'])
 
 if __name__ == '__main__':
