@@ -1,8 +1,8 @@
 from peewee import *
 
 
-# db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='db', port=5432)
-db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='localhost', port=5432)
+db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='db', port=5432)
+# db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='localhost', port=5432)
 
 class BaseModel(Model):
     class Meta:
