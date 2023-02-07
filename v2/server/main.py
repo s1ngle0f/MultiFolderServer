@@ -3,6 +3,7 @@ import os.path
 import time
 import datetime
 from help_functions import get_diff, get_id, add_file_bytes
+from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse
 import uvicorn
@@ -11,8 +12,9 @@ from os.path import isfile, join
 from models import User, Directory, LastTimeModification, File, db
 
 
-settings_app_path = os.getcwd() + '/settings_app'
+settings_app_path = os.getcwd() + os.path.normpath('/settings_app')
 files_buffer = {}
+data_app_path = os.path.dirname(os.getcwd()) + os.path.normpath('/data')
 
 async def basic(request: Request):
     result = dict(request.query_params)
@@ -74,6 +76,9 @@ async def delete_file(request: Request, params: dict = Depends(basic)):
         if directory != None:
             File.delete().where((File.directory_id == directory.id) & (File.path == params['local_path'])).execute()
             save_file_last_time_modification(directory.id, float(params['timestamp']))
+            file_manipulate(
+                os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(params['local_path']),
+                ManipulationType.DELETE)
             return 'Deleted'
 
 @app.post('/upload_file')
@@ -87,11 +92,12 @@ async def upload_file(request: Request, file: UploadFile, params: dict = Depends
                 file_data += chunk
             if existing_file is None:
                 File.create(directory_id=directory.id, name=os.path.basename(file.filename), path=params['local_path'],
-                            timestamp=float(params['timestamp']), size=len(file_data), data=file_data) #ПОФИКСИТЬ ЗАГРУЗКУ БИТОВ
+                            timestamp=float(params['timestamp']), size=len(file_data)) #ПОФИКСИТЬ ЗАГРУЗКУ БИТОВ
             else:
-                File.update(timestamp=float(params['timestamp']), size=len(file_data), data=file_data).where(
+                File.update(timestamp=float(params['timestamp']), size=len(file_data)).where(
                     (File.path == params['local_path']) & (File.directory_id == directory.id)
                 ).execute()
+            file_manipulate(os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(params['local_path']), ManipulationType.UPLOAD, file_data)
             save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
             return 'Uploaded'
 
@@ -145,7 +151,11 @@ async def get_file(request: Request, params: dict = Depends(basic)):
             if file != None:
                 # print(bytes(file.data)[:100])
                 time_modification = time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
-                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(file.data))[2:-1]}
+                data = file_manipulate(
+                    os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(
+                        params['local_path']),
+                    ManipulationType.GET)
+                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(data))[2:-1]}
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):

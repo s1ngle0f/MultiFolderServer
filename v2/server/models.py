@@ -2,7 +2,7 @@ from peewee import *
 
 
 db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='db', port=5432)
-# db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='localhost', port=5432)
+# db = PostgresqlDatabase('multifolder', user='postgres', password='6010', host='62.113.116.196', port=5431)
 
 class BaseModel(Model):
     class Meta:
@@ -40,7 +40,7 @@ class File(BaseModel):
     path = CharField(max_length=512, null=False)
     timestamp = TimestampField(null=False)
     size = BigIntegerField()
-    data = BlobField()
+    # data = BlobField()
 
     class Meta:
         table_name = 'files'

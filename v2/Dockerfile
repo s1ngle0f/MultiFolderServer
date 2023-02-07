@@ -1,6 +1,6 @@
 FROM python:3.10.7
 
-COPY . /server
+COPY ./server /server
 
 WORKDIR /server
 

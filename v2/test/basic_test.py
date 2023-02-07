@@ -12,6 +12,8 @@ from os.path import isfile, join
 #
 # print(os.getcwd())
 
-settings_app_path = os.path.dirname(os.getcwd()) + '\\settings_app'
-onlyfiles = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
-print(onlyfiles)
+# settings_app_path = os.path.dirname(os.getcwd()) + '\\settings_app'
+# onlyfiles = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
+# print(onlyfiles)
+
+print('ЗубковМБП' == 'ЗубковМБП')

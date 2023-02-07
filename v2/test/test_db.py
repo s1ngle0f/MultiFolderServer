@@ -1,9 +1,4 @@
-import json
-import os.path
-import time
-import datetime
-
-from v2.models import *
+from v2.server.models import *
 
 with db:
     # db.create_tables([User, Directory, File])
@@ -25,5 +20,5 @@ with db:
     #     print(round(1672440979.775274) < round(timestamp))
         # with open('C:\\Users\\zubko\\Desktop\\DATA\\zubkov\\creating_files\\' + os.path.basename(file.name), 'a+') as f:
         #     f.write(file.data)
-
-    print(list(File.select()))
+    dir = Directory.select().where((Directory.name == "ЗубковМБП") & (Directory.user_id == 1)).first()
+    print(dir.id)
