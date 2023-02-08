@@ -5,7 +5,7 @@ import datetime
 from help_functions import get_diff, get_id, add_file_bytes
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import uvicorn
 from os import listdir
 from os.path import isfile, join
@@ -142,6 +142,21 @@ async def get_unique_id(request: Request, params: dict = Depends(basic)):
         files_buffer[id] = {'data': {}, 'parts': params['parts']}
         return id
 
+@app.get('/get_file_info')
+async def get_file_info(request: Request, params: dict = Depends(basic)):
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory != None:
+            file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
+            if file != None:
+                time_modification = time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
+                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size}
+
+from typing import Generator
+def get_data_from_file(file_path: str) -> Generator:
+    with open(file=file_path, mode="rb") as file_like:
+        yield file_like.read()
+
 @app.get('/get_file')
 async def get_file(request: Request, params: dict = Depends(basic)):
     if params['status']:
@@ -149,13 +164,12 @@ async def get_file(request: Request, params: dict = Depends(basic)):
         if directory != None:
             file = File.select().where((File.directory_id == directory.id) & (File.path == params['local_path'])).first()
             if file != None:
-                # print(bytes(file.data)[:100])
-                time_modification = time.mktime(datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
-                data = file_manipulate(
-                    os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(
-                        params['local_path']),
-                    ManipulationType.GET)
-                return {'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size, 'data': str(bytes(data))[2:-1]}
+                # data = file_manipulate(
+                #     os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(
+                #         params['local_path']),
+                #     ManipulationType.GET)
+                data = get_data_from_file(os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(params['local_path']))
+                return StreamingResponse(content=data, media_type='application/octet-stream')
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
