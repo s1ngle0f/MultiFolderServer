@@ -1,8 +1,10 @@
+import io
 import json
 import os.path
 import time
 import datetime
-from help_functions import get_diff, get_id, add_file_bytes
+import zipfile
+from help_functions import get_diff, get_id, prepare_zippath
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -99,6 +101,39 @@ async def upload_file(request: Request, file: UploadFile, params: dict = Depends
                 ).execute()
             file_manipulate(os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(params['local_path']), ManipulationType.UPLOAD, file_data)
             save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
+            return 'Uploaded'
+
+@app.post('/upload_zipfile')
+async def upload_zipfile(request: Request, file: UploadFile, json_file: UploadFile, params: dict = Depends(basic)):
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        if directory is not None:
+
+            files_info = b''
+            while chunk := await json_file.read(1024 * 1024 * 4):
+                files_info += chunk
+            files_info = json.loads(str(files_info, 'utf-8'))
+            print(files_info)
+
+            zipfile_data = b''
+            while chunk := await file.read(1024*1024*4):
+                zipfile_data += chunk
+            zip = zipfile.ZipFile(io.BytesIO(zipfile_data), 'r', zipfile.ZIP_DEFLATED, False)
+            for file_info in files_info:
+                local_path = prepare_zippath(os.path.relpath(file_info['path'], '\\'))
+                info = zip.getinfo(local_path)
+                # print(info.filename, file_info['path'], file_info['time_modification'], info.file_size, zip.open(local_path, 'r').read()[:10])
+
+                existing_file = File.select().where((File.path == file_info['path']) & (File.directory_id == directory.id)).first()
+                if existing_file is None:
+                    File.create(directory_id=directory.id, name=os.path.basename(info.filename), path=file_info['path'],
+                                timestamp=float(file_info['time_modification']), size=info.file_size)
+                else:
+                    File.update(timestamp=float(file_info['time_modification']), size=info.file_size).where(
+                        (File.path == file_info['path']) & (File.directory_id == directory.id)
+                    ).execute()
+                file_manipulate(os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(file_info['path']), ManipulationType.UPLOAD, zip.open(local_path, 'r').read())
+                save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
             return 'Uploaded'
 
 @app.post('/test_stream_upload_file')
