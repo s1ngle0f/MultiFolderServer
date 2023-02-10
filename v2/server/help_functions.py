@@ -47,11 +47,11 @@ def add_file_bytes(bytes_parts: dict):
     return res
 
 def prepare_zippath(s):
-    s = s.replace(os.sep, '/')
+    s = s.replace(chr(92), '/')
     char = '/'
     while char * 2 in s:
         s = s.replace(char * 2, char)
-    return s
+    return os.path.relpath(s, '/').replace(chr(92), '/')
 
 from typing import Generator
 class InMemoryZip(object):

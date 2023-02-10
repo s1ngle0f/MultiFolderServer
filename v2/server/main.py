@@ -121,7 +121,7 @@ async def upload_zipfile(request: Request, file: UploadFile, json_file: UploadFi
             zip = zipfile.ZipFile(io.BytesIO(zipfile_data), 'r', zipfile.ZIP_DEFLATED, False)
             for file_info in files_info:
                 try:
-                    local_path = prepare_zippath(os.path.relpath(file_info['path'], '\\'))
+                    local_path = prepare_zippath(file_info['path'])
                     info = zip.getinfo(local_path)
                     # print(info.filename, file_info['path'], file_info['time_modification'], info.file_size, zip.open(local_path, 'r').read()[:10])
 
@@ -137,7 +137,7 @@ async def upload_zipfile(request: Request, file: UploadFile, json_file: UploadFi
                     save_file_last_time_modification(directory.id, float(params['dir_timestamp']))
                 except Exception as e:
                     print(file_info)
-                    print(prepare_zippath(os.path.relpath(file_info['path'], '\\')))
+                    print(prepare_zippath(file_info['path']))
                     print(e)
             return 'Uploaded'
 
