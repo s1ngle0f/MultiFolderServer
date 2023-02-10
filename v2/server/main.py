@@ -4,7 +4,7 @@ import os.path
 import time
 import datetime
 import zipfile
-from help_functions import get_diff, get_id, prepare_zippath
+from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -205,6 +205,32 @@ async def get_file(request: Request, params: dict = Depends(basic)):
                 #     ManipulationType.GET)
                 data = get_data_from_file(os.path.join(data_app_path, params['login'], directory.name) + os.path.normpath(params['local_path']))
                 return StreamingResponse(content=data, media_type='application/octet-stream')
+
+@app.get('/get_zipfile')
+async def get_zipfile(request: Request, params: dict = Depends(basic)):
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        files_info = json.loads(await request.json())
+        if directory != None:
+            imz = InMemoryZip(os.path.join(data_app_path, params['login'], params['dir_name']))
+            imz.append(files_info)
+            data = imz.read_generator()
+            return StreamingResponse(content=data, media_type='application/octet-stream')
+
+@app.get('/get_zipfile_info')
+async def get_zipfile_info(request: Request, params: dict = Depends(basic)):
+    if params['status']:
+        directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
+        files_info = json.loads(await request.json())
+        if directory != None:
+            res = []
+            for file_info in files_info:
+                file = File.select().where((File.directory_id == directory.id) & (File.path == file_info['path'])).first()
+                if file != None:
+                    time_modification = time.mktime(
+                        datetime.datetime.strptime(str(file.timestamp), "%Y-%m-%d %H:%M:%S").timetuple())
+                    res.append({'name': file.name, 'path': file.path, 'time_modification': time_modification, 'size': file.size})
+            return res
 
 @app.get('/get_dir_last_time_modification')
 async def get_dir_last_time_modification(request: Request, params: dict = Depends(basic)):
