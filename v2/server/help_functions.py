@@ -51,7 +51,10 @@ def prepare_zippath(s):
     char = '/'
     while char * 2 in s:
         s = s.replace(char * 2, char)
-    return os.path.relpath(s, '/').replace(chr(92), '/')
+    s = os.path.relpath(s, '/').replace(chr(92), '/')
+    while s[0] == '/' or s[0] == chr(92):
+        s = s[1:]
+    return s
 
 from typing import Generator
 class InMemoryZip(object):

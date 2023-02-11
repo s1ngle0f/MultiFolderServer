@@ -16,7 +16,8 @@ from models import User, Directory, LastTimeModification, File, db
 
 settings_app_path = os.getcwd() + os.path.normpath('/settings_app')
 files_buffer = {}
-data_app_path = os.path.dirname(os.getcwd()) + os.path.normpath('/data')
+# data_app_path = os.path.dirname(os.getcwd()) + os.path.normpath('/data')
+data_app_path = os.getcwd() + os.path.normpath('/data')
 
 async def basic(request: Request):
     result = dict(request.query_params)
