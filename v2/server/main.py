@@ -220,8 +220,8 @@ async def get_zipfile(request: Request, params: dict = Depends(basic)):
             imz = InMemoryZip(os.path.join(data_app_path, params['login'], params['dir_name']))
             imz.append(files_info)
             data = imz.read_generator()
-            # return StreamingResponse(content=data, media_type='application/octet-stream')
-            return Response(content=data, media_type='application/octet-stream')
+            return StreamingResponse(content=data, media_type='application/octet-stream')
+            # return Response(content=data, media_type='application/octet-stream')
 
 @app.get('/get_zipfile_info')
 async def get_zipfile_info(request: Request, params: dict = Depends(basic)):
