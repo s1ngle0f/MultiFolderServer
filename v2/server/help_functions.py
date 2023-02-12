@@ -52,7 +52,7 @@ def prepare_zippath(s):
     while char * 2 in s:
         s = s.replace(char * 2, char)
     s = os.path.relpath(s, '/').replace(chr(92), '/')
-    while s[0] == '/' or s[0] == chr(92):
+    while s[0] == '/' or s[0] == chr(92) or s[0] == '.':
         s = s[1:]
     return s
 
@@ -73,7 +73,7 @@ class InMemoryZip(object):
         for file in files:
             with open(self.dir_path + file['path'], 'rb') as f:
                 data = f.read()
-            zf.writestr(os.path.relpath(file['path'], '\\'), data)
+            zf.writestr(prepare_zippath(file['path']), data)
 
         # Mark the files as having been created on Windows so that
         # Unix permissions are not inferred as 0000
