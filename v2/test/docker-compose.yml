@@ -7,4 +7,5 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ../data:/server/data
+      - /etc:/etc
+      - /home:/home
