@@ -12,6 +12,7 @@ RUN pip install --upgrade pip && \
     pip install psycopg2-binary && \
     pip install python-multipart && \
     pip install fastapi && \
-    pip install uvicorn
+    pip install uvicorn && \
+    pip install GitPython
 
 CMD ["python", "main.py"]
