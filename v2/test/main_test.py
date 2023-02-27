@@ -29,6 +29,12 @@ print(result.stdout)
 result = subprocess.run(["su", username, "-c", "chmod 700 ~/.ssh"])
 print(result.stdout)
 
+with open(f"/home/{username}/.ssh/authorized_keys", 'r') as file:
+    lines = file.read()
+    for line in lines:
+        print(line)
+        file.w
+
 # result = subprocess.run(["su", "-", username])
 # print(result.stdout)
 # result = subprocess.run(["pwd"])

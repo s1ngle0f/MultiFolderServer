@@ -1,10 +1,10 @@
-FROM python:3.10.7
+FROM python:3.9
 
 COPY ./server /server
 
 WORKDIR /server
 
-RUN apt update
+RUN apt update && apt-get update && apt-get install -y sudo && sudo apt-get install git
 
 RUN pip install --upgrade pip && \
     pip install peewee && \
