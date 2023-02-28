@@ -111,6 +111,7 @@ async def registrate(request: Request):
     isuser = subprocess.run(["id", username]).returncode
     if isuser != 0:
         subprocess.run(["sudo", "useradd", "-m", username])
+        subprocess.run(["chown", "-R", username, f'/home/{username}'])
         subprocess.run(["su", username, "-c", "mkdir -p ~/.ssh"])
         subprocess.run(["su", username, "-c", "touch ~/.ssh/authorized_keys"])
         subprocess.run(["su", username, "-c", "chmod 600 ~/.ssh/authorized_keys"])
