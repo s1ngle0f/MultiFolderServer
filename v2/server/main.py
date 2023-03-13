@@ -77,7 +77,7 @@ async def add_dir(request: Request, params: dict = Depends(basic)):
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory is None:
             Directory.create(name=params['dir_name'], user_id=params['user_id'])
-        git_dir_path = f'~/git/{params["dir_name"]}.git'
+        git_dir_path = f'/home/{params["login"]}/git/{params["dir_name"]}.git'
         if not os.path.exists(git_dir_path):
             subprocess.run(["su", params["login"], "-c", f"mkdir -p '{git_dir_path}'"])
             subprocess.run(["su", params["login"], "-c", f"git init --bare '{git_dir_path}'"])
