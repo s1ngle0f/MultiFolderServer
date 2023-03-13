@@ -81,6 +81,7 @@ async def add_dir(request: Request, params: dict = Depends(basic)):
         if not os.path.exists(git_dir_path):
             subprocess.run(["su", params["login"], "-c", f"mkdir -p '{git_dir_path}'"])
             subprocess.run(["su", params["login"], "-c", f"git init --bare '{git_dir_path}'"])
+            subprocess.run(["su", params["login"], "-c", f"git config --global --add safe.directory '{git_dir_path}'"])
 
 @app.get('/add_ssh_key')
 async def add_ssh_key(request: Request, params: dict = Depends(basic)):
