@@ -68,7 +68,7 @@ async def get_dirs(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directories = Directory.select().where(Directory.user_id == params['user_id'])
         if directories is not None:
-            return [{'name': directory.name} for directory in directories]
+            return [directory.name for directory in directories]
         return []
 
 @app.get('/add_dir')
