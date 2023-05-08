@@ -12,7 +12,8 @@ from fastapi.responses import FileResponse, StreamingResponse, Response
 import uvicorn
 from os import listdir
 from os.path import isfile, join
-from models import User, Directory, LastTimeModification, File, db
+from models import User, Directory, LastTimeModification, File, Tokens, db
+from main_site import site_router
 
 
 settings_app_path = os.getcwd() + os.path.normpath('/settings_app')
@@ -33,6 +34,7 @@ async def basic(request: Request):
     return result
 
 app = FastAPI()
+app.include_router(site_router)
 
 @app.get('/installer/download')
 async def installer_download(request: Request):
@@ -120,5 +122,5 @@ async def registrate(request: Request):
 
 if __name__ == '__main__':
     with db:
-        db.create_tables([User, Directory, File, LastTimeModification])
+        db.create_tables([User, Directory, File, LastTimeModification, Tokens])
     uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')

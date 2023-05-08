@@ -44,3 +44,10 @@ class File(BaseModel):
 
     class Meta:
         table_name = 'files'
+
+class Tokens(BaseModel):
+    token = CharField(primary_key=True, unique=True, max_length=64)
+    user_id = ForeignKeyField(User, field='id', null=False)
+
+    class Meta:
+        table_name = 'tokens'
