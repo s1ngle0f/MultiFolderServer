@@ -14,6 +14,8 @@ from os import listdir
 from os.path import isfile, join
 from models import User, Directory, LastTimeModification, File, Tokens, db
 from main_site import site_router
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
 
 settings_app_path = os.getcwd() + os.path.normpath('/settings_app')
@@ -35,6 +37,10 @@ async def basic(request: Request):
 
 app = FastAPI()
 app.include_router(site_router)
+
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 @app.get('/installer/download')
 async def installer_download(request: Request):

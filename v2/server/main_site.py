@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 site_router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
-# site_router.mount("/static", StaticFiles(directory="static"), name="static")
+site_router.mount("/static", StaticFiles(directory="static"), name="static")
 
 async def get_user_by_token(request: Request, response: Response) -> User:
     current_token = request.cookies.get("usertoken")
