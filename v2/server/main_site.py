@@ -27,8 +27,6 @@ async def get_user_by_token(request: Request, response: Response) -> User:
 
 @site_router.get('/home')
 async def home_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
-    new_token = generate_token()
-    response.set_cookie(key='usertoken', value=new_token, max_age=60 * 60 * 24 * 30, domain=None, path='/')
     data = {
         "user": cur_user
     }
@@ -59,3 +57,19 @@ async def authorization_post(request: Request, response: Response):
     if user is not None:
         template_response.set_cookie(key='usertoken', value=new_token, max_age=60*60*24*30, domain=None, path='/')
     return template_response
+
+
+@site_router.get('/account')
+async def account_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
+    data = {
+        "user": cur_user
+    }
+    return templates.TemplateResponse("account.html", {"request": request, 'response': Response, "data": data})
+
+
+@site_router.get('/download')
+async def download_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
+    data = {
+        "user": cur_user
+    }
+    return templates.TemplateResponse("download.html", {"request": request, 'response': Response, "data": data})
