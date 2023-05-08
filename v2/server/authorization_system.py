@@ -10,7 +10,3 @@ def generate_token():
     for _ in range(length):
         res += random.choice(chars)
     return res
-
-
-def get_user_by_token(token):
-    pass

@@ -123,4 +123,5 @@ async def registrate(request: Request):
 if __name__ == '__main__':
     with db:
         db.create_tables([User, Directory, File, LastTimeModification, Tokens])
+    Tokens.delete().execute()
     uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')
