@@ -59,6 +59,16 @@ async def authorization_post(request: Request, response: Response):
     return template_response
 
 
+@site_router.get('/logout')
+async def logout_get(request: Request, response: Response):
+    current_token = request.cookies.get("usertoken")
+    if current_token is not None:
+        Tokens.delete().where(Tokens.token == current_token).execute()
+    template_response = RedirectResponse(url='/home', status_code=302)
+    template_response.set_cookie(key='usertoken', value="", max_age=60*60*24*30, domain=None, path='/')
+    return template_response
+
+
 @site_router.get('/account')
 async def account_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
     data = {
