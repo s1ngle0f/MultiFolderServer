@@ -33,12 +33,12 @@ async def home_get(request: Request, response: Response, cur_user: User = Depend
     return templates.TemplateResponse("home.html", {"request": request, 'response': Response, "data": data})
 
 
-@site_router.get('/authorization')
-async def authorization_get(request: Request, cur_user: User = Depends(get_user_by_token)):
-    data = {
-        "page": "Home page"
-    }
-    return templates.TemplateResponse("authorization.html", {"request": request, "data": data})
+# @site_router.get('/authorization')
+# async def authorization_get(request: Request, cur_user: User = Depends(get_user_by_token)):
+#     data = {
+#         "page": "Home page"
+#     }
+#     return templates.TemplateResponse("authorization.html", {"request": request, "data": data})
 
 
 @site_router.post('/authorization')
