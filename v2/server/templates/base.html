@@ -57,9 +57,28 @@
           <div class="d-flex">
               <div class="nav-item">
                   {% if data.user %}
-                  <a class="nav-link" href="#">
+                  <a id="userlogin" class="nav-link">
                     {{data.user.login}}
                   </a>
+                  <div id="dropdownmenu" class="details-menu dropdown-menu dropdown-menu-sw snipcss-wF7yK" role="menu" data-focus-trap="suspended"
+                    style="background-color: #212529;">
+                      <span class="sentinel" tabindex="0" aria-hidden="true">
+                      </span>
+                      <a role="menuitem" class="dropdown-item" href="/new" data-ga-click="Header, create new repository"
+                      style="color: #f9f9f9"
+                         onmouseover="this.style.backgroundColor='#272a2f'"
+                         onmouseout="this.style.backgroundColor='#212529'">
+                        Account
+                      </a>
+                      <a role="menuitem" class="dropdown-item" href="/new/import" data-ga-click="Header, import a repository"
+                      style="color: #f9f9f9"
+                         onmouseover="this.style.backgroundColor='#272a2f'"
+                         onmouseout="this.style.backgroundColor='#212529'">
+                        Log Out
+                      </a>
+                      <span class="sentinel" tabindex="0" aria-hidden="true">
+                      </span>
+                    </div>
                   {% else %}
                   <a id="LogIn" class="nav-link">
                     Log In
@@ -102,9 +121,12 @@
 </div>
 
 <script>
-    document.getElementById('LogIn').addEventListener('click', function() {
-      document.getElementById('authform').style.display = 'flex';
-    });
+    var LogIn = document.getElementById('LogIn');
+    if(LogIn){
+      LogIn.addEventListener('click', function() {
+        document.getElementById('authform').style.display = 'flex';
+      });
+    }
     document.getElementById('authform').addEventListener('click', function() {
       var targetElement = event.target;
 
@@ -112,6 +134,17 @@
         document.getElementById('authform').style.display = 'none';
       }
     });
+    var userlogin = document.getElementById('userlogin');
+    if(userlogin){
+      userlogin.addEventListener("click", function() {
+        var dropdownContent = document.getElementById("dropdownmenu");
+        if (dropdownContent.style.display === "block") {
+          dropdownContent.style.display = "none";
+        } else {
+          dropdownContent.style.display = "block";
+        }
+      });
+    }
 </script>
 {% endblock %}
 
@@ -219,6 +252,9 @@
       <p class="lead snipcss0-4-66-69">
         Some great placeholder content for the first featurette here. Imagine some exciting prose here.
       </p>
+      <a class="btn btn-lg btn-primary" href="http://localhost:5000/installer/download">
+        Download
+      </a>
     </div>
     <div class="col-md-5 snipcss0-3-65-70">
       <svg class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto snipcss0-4-70-71" width="500" height="500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 500x500" preserveAspectRatio="xMidYMid slice" focusable="false">
