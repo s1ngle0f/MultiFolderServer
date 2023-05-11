@@ -110,7 +110,7 @@
           </form>
       </div>
       <div class="login">
-          <form id="authformdata" method="post" action="http://localhost:5000/authorization">
+          <form id="authformdata" method="post" action="{{ data.base_url }}/authorization">
               <label for="chk" aria-hidden="true">Login</label>
               <input class="authinput" type="text" name="login" placeholder="Email" required="">
               <input class="authinput" type="password" name="password" placeholder="Password" required="">
@@ -252,7 +252,7 @@
       <p class="lead snipcss0-4-66-69">
         Some great placeholder content for the first featurette here. Imagine some exciting prose here.
       </p>
-      <a class="btn btn-lg btn-primary" href="http://localhost:5000/installer/download">
+      <a class="btn btn-lg btn-primary" href="{{ data.base_url }}/installer/download">
         Download
       </a>
     </div>

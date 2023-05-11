@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+base_url = 'http://localhost:5000'
 site_router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
@@ -28,7 +29,8 @@ async def get_user_by_token(request: Request, response: Response) -> User:
 @site_router.get('/home')
 async def home_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
     data = {
-        "user": cur_user
+        "user": cur_user,
+        "base_url": base_url
     }
     return templates.TemplateResponse("home.html", {"request": request, 'response': Response, "data": data})
 
@@ -72,7 +74,8 @@ async def logout_get(request: Request, response: Response):
 @site_router.get('/account')
 async def account_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
     data = {
-        "user": cur_user
+        "user": cur_user,
+        "base_url": base_url
     }
     return templates.TemplateResponse("account.html", {"request": request, 'response': Response, "data": data})
 
@@ -80,6 +83,7 @@ async def account_get(request: Request, response: Response, cur_user: User = Dep
 @site_router.get('/download')
 async def download_get(request: Request, response: Response, cur_user: User = Depends(get_user_by_token)):
     data = {
-        "user": cur_user
+        "user": cur_user,
+        "base_url": base_url
     }
     return templates.TemplateResponse("download.html", {"request": request, 'response': Response, "data": data})
