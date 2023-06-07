@@ -13,6 +13,7 @@ RUN pip install --upgrade pip && \
     pip install python-multipart && \
     pip install fastapi && \
     pip install uvicorn && \
+    pip install Jinja2 && \
     pip install GitPython
 
 CMD ["python", "main.py"]
