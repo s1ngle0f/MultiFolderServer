@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-base_url = 'http://localhost:5000'
+base_url = 'http://45.141.103.92'
 site_router = APIRouter()
 
 templates = Jinja2Templates(directory="templates")
