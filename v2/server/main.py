@@ -44,8 +44,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get('/installer/download')
 async def installer_download(request: Request):
-    if os.path.exists(settings_app_path + '/installer/installer_updater.exe'):
-        return FileResponse(path=settings_app_path + '/installer/installer_updater.exe', media_type='application/octet-stream', filename='installer_updater.exe')
+    if os.path.exists(settings_app_path + '/installer/Setup.msi'):
+        return FileResponse(path=settings_app_path + '/installer/Setup.msi', media_type='application/octet-stream', filename='Setup.msi')
 
 @app.get('/get_working_file')
 async def get_working_file(request: Request):
