@@ -9,6 +9,7 @@ from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip, hash_
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse, Response
+from authorization_system import generate_token
 import uvicorn
 from os import listdir
 from os.path import isfile, join
@@ -125,6 +126,21 @@ async def registrate(request: Request):
         subprocess.run(["su", username, "-c", "touch ~/.ssh/authorized_keys"])
         subprocess.run(["su", username, "-c", "chmod 600 ~/.ssh/authorized_keys"])
         subprocess.run(["su", username, "-c", "chmod 700 ~/.ssh"])
+
+@app.get('/authorization_desktop')
+async def authorization_desktop_get(request: Request, response: Response):
+    params = dict(request.query_params)
+    current_token = params.get("usertoken")
+    if current_token is not None:
+        Tokens.delete().where(Tokens.token == current_token).execute()
+    new_token = generate_token()
+    login = params["login"]
+    password = params["password"]
+    user = User.select().where((User.login == login) & (User.password == password)).first()
+    if user is not None:
+        Tokens.create(token=new_token, user_id=user.id)
+        return {'usertoken': new_token}
+    return None
 
 if __name__ == '__main__':
     with db:
