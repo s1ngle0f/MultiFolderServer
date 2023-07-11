@@ -5,7 +5,7 @@ import subprocess
 import time
 import datetime
 import zipfile
-from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip
+from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip, hash_password
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse, Response
@@ -116,7 +116,7 @@ async def registrate(request: Request):
     params = dict(request.query_params)
     username = params['login']
     if User.select().where(User.login == username).first() is None:
-        User.create(login=username, password=params['password'])
+        User.create(login=username, password=hash_password(params['password']))
     isuser = subprocess.run(["id", username]).returncode
     if isuser != 0:
         subprocess.run(["sudo", "useradd", "-m", username])

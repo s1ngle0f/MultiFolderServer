@@ -3,7 +3,14 @@ import string
 import os
 import zipfile
 import io
+import hashlib
 
+
+def hash_password(password):
+    sha256Hash = hashlib.sha256()
+    sha256Hash.update(password.encode('utf-8'))
+    hashedPassword = sha256Hash.hexdigest()
+    return hashedPassword
 
 def get_diff(last_files_info, current_files_info):
     add = []
