@@ -28,13 +28,26 @@ async def basic(request: Request):
     result = dict(request.query_params)
     print(result)
     with db:
-        user = User.select().where((User.login == result['login']) & (User.password == result['password'])).first()
+        user = await get_user_by_token(result['usertoken'])
         if user != None:
             result['status'] = True
             result['user_id'] = user.id
         else:
             result['status'] = False
     return result
+
+async def get_user_by_token(usertoken) -> User:
+    current_token = usertoken
+    # print(f'Current token: {current_token}')
+    if current_token is not None:
+        token = Tokens.select().where(Tokens.token == current_token).first()
+        if token is not None:
+            user_id = token.user_id
+            return User.select().where(User.id == user_id).first()
+        else:
+            None
+    else:
+        return None
 
 app = FastAPI()
 app.include_router(site_router)
@@ -49,13 +62,13 @@ async def installer_download(request: Request):
         return FileResponse(path=settings_app_path + '/installer/Setup.msi', media_type='application/octet-stream', filename='Setup.msi')
 
 @app.get('/get_working_file')
-async def get_working_file(request: Request):
+async def get_working_file(request: Request, cur_user: User = Depends(get_user_by_token)):
     params = dict(request.query_params)
     if os.path.exists(settings_app_path + f'/{params["file_name"]}'):
         return FileResponse(path=settings_app_path + f'/{params["file_name"]}', media_type='application/octet-stream', filename=params["file_name"])
 
 @app.get('/get_list_working_files')
-async def get_list_working_files(request: Request):
+async def get_list_working_files(request: Request, cur_user: User = Depends(get_user_by_token)):
     print(settings_app_path)
     files = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
     print(files)
@@ -68,7 +81,20 @@ async def ping_pong(request: Request, params: dict = Depends(basic)):
 
 @app.get('/is_exist_user')
 async def is_exist_user(params: dict = Depends(basic)):
-    if params['status']:
+    if params.get('password') is None:
+        if params['status']:
+            return True
+    else:
+        user = User.select().where((User.login == result['login']) & (User.password == hash_password(result['password']))).first()
+        if user != None:
+            return True
+    return False
+
+@app.get('/is_exist_user_by_password')
+async def is_exist_user_by_password(request: Request):
+    params = dict(request.query_params)
+    user = User.select().where((User.login == params['login']) & (User.password == hash_password(params['password']))).first()
+    if user != None:
         return True
     return False
 
@@ -81,7 +107,7 @@ async def get_dirs(request: Request, params: dict = Depends(basic)):
         return []
 
 @app.get('/add_dir')
-async def add_dir(request: Request, params: dict = Depends(basic)):
+async def add_dir(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory is None:
@@ -93,7 +119,7 @@ async def add_dir(request: Request, params: dict = Depends(basic)):
             subprocess.run(["su", params["login"], "-c", f"git config --system --add safe.directory '*'"])
 
 @app.get('/add_ssh_key')
-async def add_ssh_key(request: Request, params: dict = Depends(basic)):
+async def add_ssh_key(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
     if params['status']:
         username = params['login']
         ssh_key = params['ssh_key']
@@ -104,7 +130,7 @@ async def add_ssh_key(request: Request, params: dict = Depends(basic)):
                 file.write(ssh_key + '\n')
 
 @app.get('/delete_dir')
-async def delete_dir(request: Request, params: dict = Depends(basic)):
+async def delete_dir(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory is not None:
@@ -135,11 +161,11 @@ async def authorization_desktop_get(request: Request, response: Response):
         Tokens.delete().where(Tokens.token == current_token).execute()
     new_token = generate_token()
     login = params["login"]
-    password = params["password"]
+    password = hash_password(params["password"])
     user = User.select().where((User.login == login) & (User.password == password)).first()
     if user is not None:
         Tokens.create(token=new_token, user_id=user.id)
-        return {'usertoken': new_token}
+        return new_token
     return None
 
 if __name__ == '__main__':

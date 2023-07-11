@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Depends, UploadFile, APIRouter
 from fastapi.responses import FileResponse, StreamingResponse, Response, RedirectResponse
 from models import User, Directory, LastTimeModification, File, Tokens, db
 from authorization_system import generate_token
+from help_functions import hash_password
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -51,7 +52,7 @@ async def authorization_post(request: Request, response: Response):
     new_token = generate_token()
     form_data = await request.form()
     login = form_data["login"]
-    password = form_data["password"]
+    password = hash_password(form_data["password"])
     user = User.select().where((User.login == login) & (User.password == password)).first()
     Tokens.create(token=new_token, user_id=user.id)
     # template_response = templates.TemplateResponse("authorization.html", {"request": request})
