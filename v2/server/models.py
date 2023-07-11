@@ -12,7 +12,7 @@ class BaseModel(Model):
 class User(BaseModel):
     id = BigAutoField(primary_key=True, unique=True)
     login = CharField(max_length=128, null=False)
-    password = CharField(max_length=64, null=False)
+    password = CharField(max_length=512, null=False)
 
     class Meta:
         table_name = 'users'
