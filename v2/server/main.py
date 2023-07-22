@@ -62,13 +62,13 @@ async def installer_download(request: Request):
         return FileResponse(path=settings_app_path + '/installer/Setup.msi', media_type='application/octet-stream', filename='Setup.msi')
 
 @app.get('/get_working_file')
-async def get_working_file(request: Request, cur_user: User = Depends(get_user_by_token)):
+async def get_working_file(request: Request):
     params = dict(request.query_params)
     if os.path.exists(settings_app_path + f'/{params["file_name"]}'):
         return FileResponse(path=settings_app_path + f'/{params["file_name"]}', media_type='application/octet-stream', filename=params["file_name"])
 
 @app.get('/get_list_working_files')
-async def get_list_working_files(request: Request, cur_user: User = Depends(get_user_by_token)):
+async def get_list_working_files(request: Request):
     print(settings_app_path)
     files = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
     print(files)
@@ -107,7 +107,7 @@ async def get_dirs(request: Request, params: dict = Depends(basic)):
         return []
 
 @app.get('/add_dir')
-async def add_dir(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
+async def add_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory is None:
@@ -119,7 +119,7 @@ async def add_dir(request: Request, params: dict = Depends(basic), cur_user: Use
             subprocess.run(["su", params["login"], "-c", f"git config --system --add safe.directory '*'"])
 
 @app.get('/add_ssh_key')
-async def add_ssh_key(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
+async def add_ssh_key(request: Request, params: dict = Depends(basic)):
     if params['status']:
         username = params['login']
         ssh_key = params['ssh_key']
@@ -130,7 +130,7 @@ async def add_ssh_key(request: Request, params: dict = Depends(basic), cur_user:
                 file.write(ssh_key + '\n')
 
 @app.get('/delete_dir')
-async def delete_dir(request: Request, params: dict = Depends(basic), cur_user: User = Depends(get_user_by_token)):
+async def delete_dir(request: Request, params: dict = Depends(basic)):
     if params['status']:
         directory = Directory.select().where((Directory.name == params['dir_name']) & (Directory.user_id == params['user_id'])).first()
         if directory is not None:
