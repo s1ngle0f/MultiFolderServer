@@ -69,10 +69,29 @@ async def get_working_file(request: Request):
 
 @app.get('/get_list_working_files')
 async def get_list_working_files(request: Request):
+    def split_path_into_list(path):
+        path_parts = []
+        while True:
+            path, folder = os.path.split(path)
+            if folder:
+                path_parts.insert(0, folder)
+            else:
+                if path:
+                    path_parts.insert(0, path)
+                break
+        return path_parts
+
     print(settings_app_path)
-    files = [f for f in listdir(settings_app_path) if isfile(join(settings_app_path, f))]
-    print(files)
-    return {'files': files}
+    file_paths = []
+    for root, dirs, files in os.walk(settings_app_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_paths.append(file_path)
+
+    base_path = os.path.abspath(settings_app_path)
+    relative_files = [os.path.relpath(file_path, base_path) for file_path in file_paths if split_path_into_list(os.path.relpath(file_path, base_path))[0] != "installer"]
+    print(relative_files)
+    return {'files': relative_files}
 
 @app.get('/ping')
 async def ping_pong(request: Request, params: dict = Depends(basic)):
@@ -172,4 +191,5 @@ if __name__ == '__main__':
     with db:
         db.create_tables([User, Directory, File, LastTimeModification, Tokens])
     Tokens.delete().execute()
-    uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')
+    # uvicorn.run(app, host='0.0.0.0', port=5000, loop='asyncio')
+    uvicorn.run('main:app', host='0.0.0.0', port=5000, loop='asyncio', reload=True)
