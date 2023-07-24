@@ -61,6 +61,24 @@ async def installer_download(request: Request):
     if os.path.exists(settings_app_path + '/installer/Setup.msi'):
         return FileResponse(path=settings_app_path + '/installer/Setup.msi', media_type='application/octet-stream', filename='Setup.msi')
 
+@app.get('/get_settings_json')
+async def get_settings_json(request: Request):
+    if os.path.exists(settings_app_path + '/installer/settings.json'):
+        data = None
+        with open(settings_app_path + '/installer/settings.json', 'r') as json_file:
+            data = json.loads(json_file.read())
+        # return FileResponse(path=settings_app_path + '/installer/settings.json', media_type='application/octet-stream', filename='settings.json')
+        return data
+
+@app.get('/get_version')
+async def get_version(request: Request):
+    if os.path.exists(settings_app_path + '/installer/settings.json'):
+        data = None
+        with open(settings_app_path + '/installer/settings.json', 'r') as json_file:
+            data = json.loads(json_file.read())
+        # return FileResponse(path=settings_app_path + '/installer/settings.json', media_type='application/octet-stream', filename='settings.json')
+        return data.get('version')
+
 @app.get('/get_working_file')
 async def get_working_file(request: Request):
     params = dict(request.query_params)
