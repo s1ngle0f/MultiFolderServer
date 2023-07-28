@@ -12,6 +12,17 @@ def hash_password(password):
     hashedPassword = sha256Hash.hexdigest()
     return hashedPassword
 
+def calculate_file_hash(file_path, hash_algorithm='sha256'):
+    # Открываем файл в бинарном режиме
+    with open(file_path, 'rb') as file:
+        # Создаем объект хэша с выбранным алгоритмом
+        hash_obj = hashlib.new(hash_algorithm)
+        # Читаем файл блоками и обновляем хэш
+        while chunk := file.read(4096):
+            hash_obj.update(chunk)
+    # Возвращаем строку с шестнадцатеричным представлением хэша
+    return hash_obj.hexdigest()
+
 def get_diff(last_files_info, current_files_info):
     add = []
     change = []

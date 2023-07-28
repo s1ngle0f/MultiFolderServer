@@ -5,7 +5,7 @@ import subprocess
 import time
 import datetime
 import zipfile
-from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip, hash_password
+from help_functions import get_diff, get_id, prepare_zippath, InMemoryZip, hash_password, calculate_file_hash
 from files_manipulation import ManipulationType, file_manipulate
 from fastapi import FastAPI, Request, Depends, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse, Response
@@ -100,6 +100,7 @@ async def get_list_working_files(request: Request):
         return path_parts
 
     print(settings_app_path)
+    files_hash = {}
     file_paths = []
     for root, dirs, files in os.walk(settings_app_path):
         for file in files:
@@ -108,8 +109,10 @@ async def get_list_working_files(request: Request):
 
     base_path = os.path.abspath(settings_app_path)
     relative_files = [os.path.relpath(file_path, base_path) for file_path in file_paths if split_path_into_list(os.path.relpath(file_path, base_path))[0] != "installer"]
+    for file_path in relative_files:
+        files_hash[file_path] = calculate_file_hash(os.path.join(base_path, file_path))
     print(relative_files)
-    return {'files': relative_files}
+    return {'files': relative_files, 'files_hash': files_hash}
 
 @app.get('/ping')
 async def ping_pong(request: Request, params: dict = Depends(basic)):
