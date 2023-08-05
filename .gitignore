@@ -1,2 +1,3 @@
 /v2/postgres-data/
+/v2/server/__pycache__/
 /.idea/
